@@ -1,0 +1,256 @@
+/**
+ * Manages round progression, target scores, and win/loss conditions.
+ * Controls the flow of the game from round to round.
+ *
+ * @author Raj Patel
+ */
+public class RoundManager {
+
+    // -------------------------------------------------------
+    // Target Scores Per Round
+    // -------------------------------------------------------
+    private static final int[] ROUND_TARGETS = {
+        0,    // index 0 unused (rounds start at 1)
+        5,    // Round 1
+        15,   // Round 2
+        35,   // Round 3
+        65,   // Round 4
+        110,  // Round 5
+        175,  // Round 6
+        280,  // Round 7
+        450,  // Round 8
+        700,  // Round 9
+        1100  // Round 10
+    };
+
+    // -------------------------------------------------------
+    // Fields
+    // -------------------------------------------------------
+    private Player player;
+    private PayoutCalculator payoutCalculator;
+    private Reel[] reels;
+    private Shop shop;
+    private boolean gameOver;
+    private boolean gameWon;
+
+    // -------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------
+
+    /**
+     * Creates a RoundManager with all necessary game components.
+     * Pre-condition: none
+     * Post-condition: all components initialized, game ready to start
+     */
+    public RoundManager() {
+        player           = new Player();
+        payoutCalculator = new PayoutCalculator();
+        reels            = new Reel[]{new Reel(), new Reel(), new Reel()};
+        shop             = new Shop(reels);
+        gameOver         = false;
+        gameWon          = false;
+    }
+
+    // -------------------------------------------------------
+    // Core Game Actions
+    // -------------------------------------------------------
+
+    /**
+     * Executes a single spin using the player's current bet.
+     * Calculates payout, applies insurance if needed, checks round end.
+     * Pre-condition: player has enough coins and spins remaining
+     * Post-condition: player state updated based on spin result
+     */
+    public int executeSpin() {
+        if (player.getCoins() < player.getCurrentBet()) {
+            return -1;
+        }
+        if (player.getSpinsLeft() <= 0) {
+            return -1;
+        }
+
+        // Deduct bet and spin
+        player.spin();
+
+        // Spin all three reels
+        String s1 = reels[0].spin();
+        String s2 = reels[1].spin();
+        String s3 = reels[2].spin();
+
+        // Calculate payout
+        int payout = payoutCalculator.calculatePayout(s1, s2, s3,
+                                                      player.getCurrentBet(),
+                                                      player);
+
+        // Check insurance trigger if no win
+        if (payout == 0 && payoutCalculator.shouldInsuranceTrigger(player)) {
+            payout = payoutCalculator.getInsurancePayout(player.getCurrentBet());
+            player.applyPayout(payout);
+        } else if (payout > 0) {
+            player.applyPayout(payout);
+        }
+
+        // Check if round or game is over
+        checkRoundEnd();
+
+        return payout;
+    }
+
+    /**
+     * Checks whether the current round has ended via win or loss.
+     * Pre-condition: player state is current
+     * Post-condition: gameOver or gameWon flags set if conditions met
+     */
+    public void checkRoundEnd() {
+        int round = player.getCurrentRound();
+
+        // Check win condition for this round
+        if (player.getScore() >= getTargetScore(round)) {
+            if (round == Player.TOTAL_ROUNDS) {
+                gameWon = true;
+            }
+            return;
+        }
+
+        // Check loss conditions
+        if (player.getSpinsLeft() <= 0 &&
+            player.getScore() < getTargetScore(round)) {
+            gameOver = true;
+        }
+
+        if (player.getCoins() <= 0 && player.getSpinsLeft() <= 0) {
+            gameOver = true;
+        }
+    }
+
+    /**
+     * Advances the game to the next round after a win.
+     * Resets reels, restocks shop, and updates player state.
+     * Pre-condition: player has met the target score for current round
+     * Post-condition: player moved to next round, reels and shop reset
+     */
+    public void advanceToNextRound() {
+        player.advanceRound();
+
+        // Reset reel odds for the new round
+        for (Reel reel : reels) {
+            reel.resetOdds();
+        }
+
+        // Restock the shop
+        shop = new Shop(reels);
+    }
+
+    /**
+     * Purchases an upgrade from the shop by index.
+     * Pre-condition: index is valid, player has enough coins
+     * Post-condition: upgrade applied if affordable and available
+     */
+    public boolean purchaseUpgrade(int index) {
+        return shop.purchase(index, player);
+    }
+
+    /**
+     * Fully resets the game to starting state.
+     * Pre-condition: none
+     * Post-condition: all components restored to initial values
+     */
+    public void resetGame() {
+        player.resetGame();
+        for (Reel reel : reels) {
+            reel.resetOdds();
+        }
+        shop     = new Shop(reels);
+        gameOver = false;
+        gameWon  = false;
+    }
+
+    // -------------------------------------------------------
+    // Round Info
+    // -------------------------------------------------------
+
+    /**
+     * Returns the target score for a given round number.
+     * Pre-condition: round is between 1 and 10 inclusive
+     * Post-condition: returns target score as int
+     */
+    public int getTargetScore(int round) {
+        if (round < 1 || round > Player.TOTAL_ROUNDS) {
+            return 0;
+        }
+        return ROUND_TARGETS[round];
+    }
+
+    /**
+     * Returns the target score for the current round.
+     * Pre-condition: none
+     * Post-condition: returns current round target as int
+     */
+    public int getCurrentTargetScore() {
+        return getTargetScore(player.getCurrentRound());
+    }
+
+    /**
+     * Returns whether the player has met the current round target.
+     * Pre-condition: none
+     * Post-condition: returns true if score >= target
+     */
+    public boolean hasMetTarget() {
+        return player.getScore() >= getCurrentTargetScore();
+    }
+
+    // -------------------------------------------------------
+    // Accessors
+    // -------------------------------------------------------
+
+    /**
+     * Returns the player object.
+     * Pre-condition: none
+     * Post-condition: returns player as Player object
+     */
+    public Player getPlayer() { return player; }
+
+    /**
+     * Returns the shop object.
+     * Pre-condition: none
+     * Post-condition: returns shop as Shop object
+     */
+    public Shop getShop() { return shop; }
+
+    /**
+     * Returns the reels array.
+     * Pre-condition: none
+     * Post-condition: returns reels as Reel array
+     */
+    public Reel[] getReels() { return reels; }
+
+    /**
+     * Returns the payout calculator object.
+     * Pre-condition: none
+     * Post-condition: returns payoutCalculator as PayoutCalculator object
+     */
+    public PayoutCalculator getPayoutCalculator() { return payoutCalculator; }
+
+    /**
+     * Returns whether the game is over due to a loss.
+     * Pre-condition: none
+     * Post-condition: returns gameOver as boolean
+     */
+    public boolean isGameOver() { return gameOver; }
+
+    /**
+     * Returns whether the player has won the entire game.
+     * Pre-condition: none
+     * Post-condition: returns gameWon as boolean
+     */
+    public boolean isGameWon() { return gameWon; }
+
+    /**
+     * Returns the last spin result symbols as a String array.
+     * Pre-condition: reels array has 3 Reel objects
+     * Post-condition: returns array of 3 symbol strings
+     */
+    public String getLastSpinResult(String s1, String s2, String s3) {
+        return payoutCalculator.getResultDescription(s1, s2, s3);
+    }
+}
