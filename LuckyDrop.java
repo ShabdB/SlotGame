@@ -18,7 +18,7 @@ public class LuckyDrop extends Upgrade {
     public LuckyDrop() {
         super("Lucky Drop",
               "Boosts Lucky 7 odds from 1% to 15%. Cherry drops 8%, Lemon drops 7%.",
-              80);
+              5);
     }
 
     // -------------------------------------------------------

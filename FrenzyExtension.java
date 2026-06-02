@@ -19,7 +19,7 @@ public class FrenzyExtension extends Upgrade {
     public FrenzyExtension() {
         super("Frenzy Extension",
               "Adds 15 seconds to active Frenzy Mode. Must have Frenzy active to use.",
-              25);
+              2);
     }
 
     // -------------------------------------------------------

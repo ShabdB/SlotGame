@@ -24,7 +24,7 @@ public class TempMultiplier extends Upgrade {
     public TempMultiplier(double multiplierValue, int spinDuration) {
         super("Temp Multiplier x" + multiplierValue,
               "Adds a " + multiplierValue + "x bonus on wins for " + spinDuration + " spins.",
-              15);
+              1);
         this.multiplierValue = multiplierValue;
         this.spinDuration    = spinDuration;
     }

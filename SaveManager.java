@@ -39,7 +39,7 @@ public class SaveManager {
             PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE));
 
             writer.println(player.getCoins());
-            writer.println(player.getScore());
+            writer.println(player.getTickets());
             writer.println(player.getSpinsLeft());
             writer.println(player.getCurrentRound());
             writer.println(player.getCurrentBet());
@@ -86,7 +86,7 @@ public class SaveManager {
             Player player = new Player();
 
             int coins              = Integer.parseInt(reader.readLine().trim());
-            int score              = Integer.parseInt(reader.readLine().trim());
+            int tickets            = Integer.parseInt(reader.readLine().trim());
             int spinsLeft          = Integer.parseInt(reader.readLine().trim());
             int currentRound       = Integer.parseInt(reader.readLine().trim());
             int currentBet         = Integer.parseInt(reader.readLine().trim());
@@ -108,7 +108,7 @@ public class SaveManager {
             reader.close();
 
             // Apply all loaded values to player
-            restorePlayer(player, coins, score, spinsLeft, currentRound,
+            restorePlayer(player, coins, tickets, spinsLeft, currentRound,
                           currentBet, consecutiveMisses, hasInsurance,
                           hasFrenzy, frenzySeconds, tempSpins,
                           tempMult, permMult, permRounds);
@@ -136,7 +136,7 @@ public class SaveManager {
      * Pre-condition: player is not null, all values are valid
      * Post-condition: player fields set to loaded values
      */
-    private void restorePlayer(Player player, int coins, int score,
+    private void restorePlayer(Player player, int coins, int tickets,
                                 int spinsLeft, int currentRound,
                                 int currentBet, int consecutiveMisses,
                                 boolean hasInsurance, boolean hasFrenzy,

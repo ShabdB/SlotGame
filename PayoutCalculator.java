@@ -1,8 +1,8 @@
 /**
- * Handles all payout calculations for the slot machine game.
- * Determines winning combinations and computes payout amounts.
+ * Handles all payout calculations for the 3x3 slot machine game.
+ * Checks all 9 winning lines and computes total payout amounts.
  *
- * @author Shabd Bhola
+ * @author Raj Patel
  */
 public class PayoutCalculator {
 
@@ -33,59 +33,103 @@ public class PayoutCalculator {
     // -------------------------------------------------------
 
     /**
-     * Calculates the payout for a given set of three reel symbols.
-     * Applies temp multiplier, perm multiplier, and frenzy if active.
-     * Pre-condition: s1, s2, s3 are valid symbol strings, bet >= 1
-     * Post-condition: returns total payout as int, 0 if no winning combo
+     * Calculates total payout for all 9 winning lines on the 3x3 grid.
+     * Pre-condition: grid has exactly 9 valid symbol strings, bet >= 1
+     * Post-condition: returns total payout as int, 0 if no winning lines
      */
-    public int calculatePayout(String s1, String s2, String s3,
-                               int bet, Player player) {
-        int baseMultiplier = getWinMultiplier(s1, s2, s3);
+    public int calculatePayout(String[] grid, int bet, Player player) {
+        int totalPayout = 0;
+        boolean anyWin  = false;
 
-        if (baseMultiplier == 0) {
-            player.recordMiss();
-            return 0;
+        // All 8 three-symbol lines
+        int[][] lines = {
+            {0, 1, 2}, // top row
+            {3, 4, 5}, // middle row
+            {6, 7, 8}, // bottom row
+            {0, 3, 6}, // left column
+            {1, 4, 7}, // center column
+            {2, 5, 8}, // right column
+            {0, 4, 8}, // diagonal top-left to bottom-right
+            {2, 4, 6}  // diagonal top-right to bottom-left
+        };
+
+        for (int[] line : lines) {
+            String s1   = grid[line[0]];
+            String s2   = grid[line[1]];
+            String s3   = grid[line[2]];
+            int    mult = getWinMultiplier(s1, s2, s3);
+
+            if (mult > 0) {
+                anyWin        = true;
+                double payout = bet * mult;
+
+                // Apply temporary multiplier if active
+                if (player.getTempMultiplierSpinsLeft() > 0) {
+                    payout *= player.getTempMultiplier();
+                }
+
+                // Apply permanent multiplier if active
+                if (player.getPermMultiplierRoundsLeft() > 0) {
+                    payout *= player.getPermMultiplier();
+                }
+
+                // Apply frenzy tripling if active
+                if (player.hasFrenzy()) {
+                    payout *= 3;
+                }
+
+                totalPayout += (int) payout;
+            }
         }
 
-        double payout = bet * baseMultiplier;
+        // Check middle 4 line (positions 1,3,5,7)
+        // All 4 must match — pays double the normal multiplier
+        int middleMult = getMiddleFourMultiplier(
+            grid[1], grid[3], grid[5], grid[7]
+        );
 
-        // Apply temporary multiplier if active (only on wins)
-        if (player.getTempMultiplierSpinsLeft() > 0) {
-            payout *= player.getTempMultiplier();
+        if (middleMult > 0) {
+            anyWin        = true;
+            double payout = bet * middleMult * 2;
+
+            if (player.getTempMultiplierSpinsLeft() > 0) {
+                payout *= player.getTempMultiplier();
+            }
+            if (player.getPermMultiplierRoundsLeft() > 0) {
+                payout *= player.getPermMultiplier();
+            }
+            if (player.hasFrenzy()) {
+                payout *= 3;
+            }
+
+            totalPayout += (int) payout;
         }
 
-        // Apply permanent multiplier if active
-        if (player.getPermMultiplierRoundsLeft() > 0) {
-            payout *= player.getPermMultiplier();
-        }
-
-        // Apply frenzy mode tripling if active
-        if (player.hasFrenzy()) {
-            payout *= 3;
-        }
-
-        return (int) payout;
+        return totalPayout;
     }
 
+    // -------------------------------------------------------
+    // Win Multiplier Logic
+    // -------------------------------------------------------
+
     /**
-     * Determines the base multiplier for three symbols.
-     * Checks for three of a kind, two plus wild, one plus two wilds.
+     * Determines the base multiplier for three symbols on a line.
      * Pre-condition: s1, s2, s3 are valid non-null symbol strings
-     * Post-condition: returns the correct multiplier int, or 0 if no win
+     * Post-condition: returns correct multiplier int, or 0 if no win
      */
     public int getWinMultiplier(String s1, String s2, String s3) {
 
-        // --- Three of a kind ---
+        // Three of a kind
         if (s1.equals(s2) && s2.equals(s3) && !s1.equals(Reel.WILD)) {
             return getMultiplierForSymbol(s1);
         }
 
-        // --- Three wilds ---
+        // Three wilds
         if (s1.equals(Reel.WILD) && s2.equals(Reel.WILD) && s3.equals(Reel.WILD)) {
             return LUCKY7_MULT;
         }
 
-        // --- Two matching + one wild ---
+        // Two matching + one wild
         if (s1.equals(s2) && !s1.equals(Reel.WILD) && s3.equals(Reel.WILD)) {
             return getMultiplierForSymbol(s1);
         }
@@ -96,7 +140,7 @@ public class PayoutCalculator {
             return getMultiplierForSymbol(s2);
         }
 
-        // --- One symbol + two wilds ---
+        // One symbol + two wilds
         if (s1.equals(Reel.WILD) && s2.equals(Reel.WILD) && !s3.equals(Reel.WILD)) {
             return getMultiplierForSymbol(s3);
         }
@@ -107,7 +151,34 @@ public class PayoutCalculator {
             return getMultiplierForSymbol(s1);
         }
 
-        // --- No winning combination ---
+        return 0;
+    }
+
+    /**
+     * Determines multiplier for the middle 4 line (all 4 must match).
+     * Pre-condition: m1, m2, m3, m4 are valid non-null symbol strings
+     * Post-condition: returns multiplier if all 4 match, 0 otherwise
+     */
+    public int getMiddleFourMultiplier(String m1, String m2,
+                                        String m3, String m4) {
+        int    wilds   = 0;
+        String nonWild = null;
+
+        String[] symbols = {m1, m2, m3, m4};
+        for (String s : symbols) {
+            if (s.equals(Reel.WILD)) {
+                wilds++;
+            } else {
+                if (nonWild == null) {
+                    nonWild = s;
+                } else if (!nonWild.equals(s)) {
+                    return 0;
+                }
+            }
+        }
+
+        if (wilds == 4)              return LUCKY7_MULT;
+        if (nonWild != null)         return getMultiplierForSymbol(nonWild);
         return 0;
     }
 
@@ -148,16 +219,44 @@ public class PayoutCalculator {
     }
 
     /**
-     * Returns a string description of a winning combination.
-     * Pre-condition: s1, s2, s3 are valid symbol strings
-     * Post-condition: returns human-readable result string
+     * Returns a description of all winning lines hit on this spin.
+     * Pre-condition: grid has 9 valid symbol strings
+     * Post-condition: returns human readable result string
      */
-    public String getResultDescription(String s1, String s2, String s3) {
-        int mult = getWinMultiplier(s1, s2, s3);
-        if (mult == 0) {
-            return "No winning combination.";
+    public String getResultDescription(String[] grid) {
+        StringBuilder sb        = new StringBuilder();
+        String[]      lineNames = {
+            "Top Row", "Mid Row", "Bot Row",
+            "Left Col", "Center Col", "Right Col",
+            "Diagonal \\", "Diagonal /"
+        };
+
+        int[][] lines = {
+            {0,1,2},{3,4,5},{6,7,8},
+            {0,3,6},{1,4,7},{2,5,8},
+            {0,4,8},{2,4,6}
+        };
+
+        for (int i = 0; i < lines.length; i++) {
+            int mult = getWinMultiplier(
+                grid[lines[i][0]],
+                grid[lines[i][1]],
+                grid[lines[i][2]]
+            );
+            if (mult > 0) {
+                sb.append(lineNames[i])
+                  .append(": ").append(mult).append("x  ");
+            }
         }
-        return s1 + " | " + s2 + " | " + s3 +
-               " — " + mult + "x multiplier!";
+
+        int m4 = getMiddleFourMultiplier(
+            grid[1], grid[3], grid[5], grid[7]
+        );
+        if (m4 > 0) {
+            sb.append("Middle 4: ").append(m4 * 2).append("x  ");
+        }
+
+        if (sb.length() == 0) return "No winning lines.";
+        return sb.toString();
     }
 }

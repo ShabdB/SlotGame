@@ -1,14 +1,11 @@
 /**
- * Manages round progression, target scores, and win/loss conditions.
+ * Manages round progression, target coins, and win/loss conditions.
  * Controls the flow of the game from round to round.
  *
  * @author Raj Patel
  */
 public class RoundManager {
-
-    // -------------------------------------------------------
-    // Target Scores Per Round
-    // -------------------------------------------------------
+    // Target coins Per Round
     private static final int[] ROUND_TARGETS = {
         0,    // index 0 unused (rounds start at 1)
         5,    // Round 1
@@ -23,9 +20,7 @@ public class RoundManager {
         1100  // Round 10
     };
 
-    // -------------------------------------------------------
     // Fields
-    // -------------------------------------------------------
     private Player player;
     private PayoutCalculator payoutCalculator;
     private Reel[] reels;
@@ -33,9 +28,7 @@ public class RoundManager {
     private boolean gameOver;
     private boolean gameWon;
 
-    // -------------------------------------------------------
     // Constructor
-    // -------------------------------------------------------
 
     /**
      * Creates a RoundManager with all necessary game components.
@@ -45,15 +38,32 @@ public class RoundManager {
     public RoundManager() {
         player           = new Player();
         payoutCalculator = new PayoutCalculator();
-        reels            = new Reel[]{new Reel(), new Reel(), new Reel()};
+        reels            = new Reel[9];
+        for (int i = 0; i < 9; i++) {
+        reels[i]         = new Reel(); 
+        }
         shop             = new Shop(reels);
         gameOver         = false;
         gameWon          = false;
     }
+    /**
+ * Creates a RoundManager with a preloaded player from a save file.
+ * Pre-condition: loadedPlayer is not null
+ * Post-condition: game state restored from saved player
+ */
+public RoundManager(Player loadedPlayer) {
+    player           = loadedPlayer;
+    payoutCalculator = new PayoutCalculator();
+    reels            = new Reel[9];
+    for (int i = 0; i < 9; i++) {
+    reels[i]         = new Reel();
+    }
+    shop             = new Shop(reels);
+    gameOver         = false;
+    gameWon          = false;
+}
 
-    // -------------------------------------------------------
     // Core Game Actions
-    // -------------------------------------------------------
 
     /**
      * Executes a single spin using the player's current bet.
@@ -72,15 +82,15 @@ public class RoundManager {
         // Deduct bet and spin
         player.spin();
 
-        // Spin all three reels
-        String s1 = reels[0].spin();
-        String s2 = reels[1].spin();
-        String s3 = reels[2].spin();
-
+        // Spin all 9 reels into a grid
+        String[] grid = new String[9];
+        for (int i = 0; i < 9; i++) {
+         grid[i] = reels[i].spin();
+        }
         // Calculate payout
-        int payout = payoutCalculator.calculatePayout(s1, s2, s3,
-                                                      player.getCurrentBet(),
-                                                      player);
+        int payout = payoutCalculator.calculatePayout(grid,
+                                                player.getCurrentBet(),
+                                                player);
 
         // Check insurance trigger if no win
         if (payout == 0 && payoutCalculator.shouldInsuranceTrigger(player)) {
@@ -101,32 +111,33 @@ public class RoundManager {
      * Pre-condition: player state is current
      * Post-condition: gameOver or gameWon flags set if conditions met
      */
-    public void checkRoundEnd() {
-        int round = player.getCurrentRound();
+  public void checkRoundEnd() {
+    int round = player.getCurrentRound();
+    boolean metTarget = player.getCoins() >= getTargetCoins(round);
 
-        // Check win condition for this round
-        if (player.getScore() >= getTargetScore(round)) {
-            if (round == Player.TOTAL_ROUNDS) {
-                gameWon = true;
-            }
-            return;
-        }
-
-        // Check loss conditions
-        if (player.getSpinsLeft() <= 0 &&
-            player.getScore() < getTargetScore(round)) {
-            gameOver = true;
-        }
-
-        if (player.getCoins() <= 0 && player.getSpinsLeft() <= 0) {
-            gameOver = true;
-        }
+    // Win condition — final round met
+    if (metTarget && round == Player.TOTAL_ROUNDS) {
+        gameWon = true;
+        return;
     }
+
+    // Loss — out of spins and didn't meet target
+    if (player.getSpinsLeft() <= 0 && !metTarget) {
+        gameOver = true;
+        return;
+    }
+
+    // Loss — out of coins, can't spin, and didn't meet target
+    if (player.getCoins() <= 0 && !metTarget) {
+        gameOver = true;
+        return;
+    }
+}
 
     /**
      * Advances the game to the next round after a win.
      * Resets reels, restocks shop, and updates player state.
-     * Pre-condition: player has met the target score for current round
+     * Pre-condition: player has met the target Coins for current round
      * Post-condition: player moved to next round, reels and shop reset
      */
     public void advanceToNextRound() {
@@ -165,16 +176,13 @@ public class RoundManager {
         gameWon  = false;
     }
 
-    // -------------------------------------------------------
     // Round Info
-    // -------------------------------------------------------
-
     /**
-     * Returns the target score for a given round number.
+     * Returns the target Coins for a given round number.
      * Pre-condition: round is between 1 and 10 inclusive
-     * Post-condition: returns target score as int
+     * Post-condition: returns target Coins as int
      */
-    public int getTargetScore(int round) {
+    public int getTargetCoins(int round) {
         if (round < 1 || round > Player.TOTAL_ROUNDS) {
             return 0;
         }
@@ -182,26 +190,24 @@ public class RoundManager {
     }
 
     /**
-     * Returns the target score for the current round.
+     * Returns the target Coins for the current round.
      * Pre-condition: none
      * Post-condition: returns current round target as int
      */
-    public int getCurrentTargetScore() {
-        return getTargetScore(player.getCurrentRound());
+    public int getCurrentTargetCoins() {
+        return getTargetCoins(player.getCurrentRound());
     }
 
     /**
      * Returns whether the player has met the current round target.
      * Pre-condition: none
-     * Post-condition: returns true if score >= target
+     * Post-condition: returns true if Coins >= target
      */
     public boolean hasMetTarget() {
-        return player.getScore() >= getCurrentTargetScore();
+        return player.getCoins() >= getCurrentTargetCoins();
     }
 
-    // -------------------------------------------------------
     // Accessors
-    // -------------------------------------------------------
 
     /**
      * Returns the player object.
@@ -250,7 +256,7 @@ public class RoundManager {
      * Pre-condition: reels array has 3 Reel objects
      * Post-condition: returns array of 3 symbol strings
      */
-    public String getLastSpinResult(String s1, String s2, String s3) {
-        return payoutCalculator.getResultDescription(s1, s2, s3);
+    public String getLastSpinResult(String[] grid) {
+    return payoutCalculator.getResultDescription(grid);
     }
 }

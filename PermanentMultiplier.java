@@ -45,12 +45,12 @@ public class PermanentMultiplier extends Upgrade {
      * Post-condition: returns the correct int cost for that tier
      */
     private static int getCostForMultiplier(double multiplierValue) {
-        if (multiplierValue == 1.1) return 20;
-        if (multiplierValue == 1.2) return 35;
-        if (multiplierValue == 1.5) return 60;
-        if (multiplierValue == 2.0) return 100;
-        return 20;
-    }
+    if (multiplierValue == 1.1) return 2;
+    if (multiplierValue == 1.2) return 3;
+    if (multiplierValue == 1.5) return 4;
+    if (multiplierValue == 2.0) return 6;
+    return 2;
+}
 
     // -------------------------------------------------------
     // Apply Effect

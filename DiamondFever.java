@@ -19,7 +19,7 @@ public class DiamondFever extends Upgrade {
     public DiamondFever() {
         super("Diamond Fever",
               "Boosts Diamond odds from 4% to 20%. Cherry drops 8%, Lemon drops 8%.",
-              70);
+              4);
     }
 
     // -------------------------------------------------------

@@ -19,7 +19,7 @@ public class InsurancePolicy extends Upgrade {
     public InsurancePolicy() {
         super("Insurance Policy",
               "After 5 spins in a row with no win, guarantees a minor payout on the 6th spin.",
-              60);
+              4);
     }
 
     // -------------------------------------------------------

@@ -2,17 +2,15 @@ import java.util.ArrayList;
 
 /**
  * Represents the player in the slot machine game.
- * Tracks coins, score, spins, current round, and owned upgrades.
+ * Tracks coins, tickets, spins, current round, and owned upgrades.
  *
- * @author Shabd Bhola
+ * @author Raj Patel
  */
 public class Player {
 
-    // -------------------------------------------------------
     // Fields
-    // -------------------------------------------------------
     private int coins;
-    private int score;
+    private int tickets;
     private int spinsLeft;
     private int currentRound;
     private int currentBet;
@@ -26,17 +24,12 @@ public class Player {
     private double permMultiplier;
     private int permMultiplierRoundsLeft;
 
-    // -------------------------------------------------------
     // Constants
-    // -------------------------------------------------------
     public static final int STARTING_COINS = 7;
     public static final int MAX_SPINS = 7;
     public static final int TOTAL_ROUNDS = 10;
 
-    // -------------------------------------------------------
     // Constructor
-    // -------------------------------------------------------
-
     /**
      * Creates a new Player with default starting values.
      * Pre-condition: none
@@ -44,7 +37,7 @@ public class Player {
      */
     public Player() {
         this.coins = STARTING_COINS;
-        this.score = 0;
+        this.tickets = 2;
         this.spinsLeft = MAX_SPINS;
         this.currentRound = 1;
         this.currentBet = 1;
@@ -56,115 +49,129 @@ public class Player {
         this.tempMultiplierSpinsLeft = 0;
         this.tempMultiplier = 1.0;
         this.permMultiplier = 1.0;
-        this.permMultiplierRoundsLeft = 0;
     }
 
-    // -------------------------------------------------------
     // Accessors (Getters)
-    // -------------------------------------------------------
 
     /**
      * Returns the player's current coin count.
      * Pre-condition: none
      * Post-condition: returns coins as an int
      */
-    public int getCoins() { return coins; }
+    public int getCoins() { 
+        return coins; 
+    }
 
     /**
      * Returns the player's current score for this round.
      * Pre-condition: none
      * Post-condition: returns score as an int
      */
-    public int getScore() { return score; }
+    public int getTickets() { 
+        return tickets; 
+    }
 
     /**
      * Returns the number of spins remaining this round.
      * Pre-condition: none
      * Post-condition: returns spinsLeft as an int
      */
-    public int getSpinsLeft() { return spinsLeft; }
+    public int getSpinsLeft() { 
+        return spinsLeft; 
+    }
 
     /**
      * Returns the current round number.
      * Pre-condition: none
      * Post-condition: returns currentRound as an int
      */
-    public int getCurrentRound() { return currentRound; }
+    public int getCurrentRound() { 
+        return currentRound; 
+    }
 
     /**
      * Returns the player's current bet amount.
      * Pre-condition: none
      * Post-condition: returns currentBet as an int
      */
-    public int getCurrentBet() { return currentBet; }
+    public int getCurrentBet() { 
+        return currentBet; 
+    }
 
     /**
      * Returns the list of upgrade names the player owns.
      * Pre-condition: none
      * Post-condition: returns upgrades as an ArrayList of Strings
      */
-    public ArrayList<String> getUpgrades() { return upgrades; }
+    public ArrayList<String> getUpgrades() { 
+        return upgrades; 
+    }
 
     /**
      * Returns how many spins in a row the player has missed.
      * Pre-condition: none
      * Post-condition: returns consecutiveMisses as an int
      */
-    public int getConsecutiveMisses() { return consecutiveMisses; }
+    public int getConsecutiveMisses() { 
+        return consecutiveMisses; 
+    }
 
     /**
      * Returns whether the player has an active insurance policy.
      * Pre-condition: none
      * Post-condition: returns hasInsurance as a boolean
      */
-    public boolean hasInsurance() { return hasInsurance; }
+    public boolean hasInsurance() { 
+        return hasInsurance; 
+    }
 
     /**
      * Returns whether frenzy mode is currently active.
      * Pre-condition: none
      * Post-condition: returns hasFrenzy as a boolean
      */
-    public boolean hasFrenzy() { return hasFrenzy; }
+    public boolean hasFrenzy() { 
+        return hasFrenzy; 
+    }
 
     /**
      * Returns how many seconds are left in frenzy mode.
      * Pre-condition: none
      * Post-condition: returns frenzySecondsLeft as an int
      */
-    public int getFrenzySecondsLeft() { return frenzySecondsLeft; }
+    public int getFrenzySecondsLeft() { 
+        return frenzySecondsLeft; 
+    }
 
     /**
      * Returns how many spins the temp multiplier has left.
      * Pre-condition: none
      * Post-condition: returns tempMultiplierSpinsLeft as an int
      */
-    public int getTempMultiplierSpinsLeft() { return tempMultiplierSpinsLeft; }
+    public int getTempMultiplierSpinsLeft() { 
+        return tempMultiplierSpinsLeft; 
+    }
 
     /**
      * Returns the current temporary multiplier value.
      * Pre-condition: none
      * Post-condition: returns tempMultiplier as a double
      */
-    public double getTempMultiplier() { return tempMultiplier; }
+    public double getTempMultiplier() { 
+        return tempMultiplier; 
+    }
 
     /**
      * Returns the current permanent multiplier value.
      * Pre-condition: none
      * Post-condition: returns permMultiplier as a double
      */
-    public double getPermMultiplier() { return permMultiplier; }
-
-    /**
-     * Returns how many rounds the permanent multiplier has left.
-     * Pre-condition: none
-     * Post-condition: returns permMultiplierRoundsLeft as an int
-     */
+    public double getPermMultiplier() { 
+        return permMultiplier; 
+    }
     public int getPermMultiplierRoundsLeft() { return permMultiplierRoundsLeft; }
 
-    // -------------------------------------------------------
     // Mutators (Setters)
-    // -------------------------------------------------------
-
     /**
      * Sets the player's bet amount.
      * Pre-condition: bet must be one of [1,2,5,10,25,50,100] and <= coins
@@ -181,7 +188,9 @@ public class Player {
      * Pre-condition: none
      * Post-condition: hasInsurance is updated
      */
-    public void setInsurance(boolean value) { this.hasInsurance = value; }
+    public void setInsurance(boolean value) { 
+        this.hasInsurance = value; 
+    }
 
     /**
      * Activates frenzy mode for 60 seconds.
@@ -234,16 +243,14 @@ public class Player {
     /**
      * Applies a permanent multiplier lasting current round + 2 more.
      * Pre-condition: multiplier > 1.0
-     * Post-condition: permMultiplier and permMultiplierRoundsLeft are set
+     * Post-condition: permMultiplier is  set
      */
     public void applyPermMultiplier(double multiplier) {
-        this.permMultiplier = multiplier;
-        this.permMultiplierRoundsLeft = 3;
+    this.permMultiplier = multiplier;
+    this.permMultiplierRoundsLeft = 3;
     }
 
-    // -------------------------------------------------------
     // Game Actions
-    // -------------------------------------------------------
 
     /**
      * Deducts the current bet from coins and reduces spins by 1.
@@ -260,10 +267,9 @@ public class Player {
     /**
      * Adds a payout amount to the player's score and coins.
      * Pre-condition: amount >= 0
-     * Post-condition: score and coins both increase by amount
+     * Post-condition: tickets and coins both increase by amount
      */
     public void applyPayout(int amount) {
-        score += amount;
         coins += amount;
         consecutiveMisses = 0;
         if (tempMultiplierSpinsLeft > 0) {
@@ -308,17 +314,26 @@ public class Player {
             coins -= cost;
         }
     }
+    /**
+ * Deducts tickets for a shop purchase.
+ * Pre-condition: cost >= 0, tickets >= cost
+ * Post-condition: tickets reduced by cost
+ */
+public void spendTickets(int cost) {
+    if (tickets >= cost) {
+        tickets -= cost;
+    }
+}
 
     /**
      * Advances the player to the next round.
-     * Resets spins and score, applies round bonus, ticks perm multiplier.
+     * Resets spins and tickets, applies round bonus, ticks perm multiplier.
      * Pre-condition: currentRound < TOTAL_ROUNDS
      * Post-condition: round incremented, spins reset, bonus coins added
      */
     public void advanceRound() {
         currentRound++;
         spinsLeft = MAX_SPINS;
-        score = 0;
         hasFrenzy = false;
         frenzySecondsLeft = 0;
 
@@ -326,10 +341,13 @@ public class Player {
         int completedRound = currentRound - 1;
         if (completedRound >= 1 && completedRound <= 3) {
             coins += 7;
+            tickets += 2;
         } else if (completedRound >= 4 && completedRound <= 6) {
             coins += 10;
+            tickets += 3;
         } else if (completedRound >= 7 && completedRound <= 9) {
             coins += 13;
+            tickets += 4;
         }
 
         // Tick down permanent multiplier
@@ -357,7 +375,7 @@ public class Player {
      */
     public void resetGame() {
         coins = STARTING_COINS;
-        score = 0;
+        tickets = 2;
         spinsLeft = MAX_SPINS;
         currentRound = 1;
         currentBet = 1;
@@ -381,7 +399,7 @@ public class Player {
     public String toString() {
         return "Round: " + currentRound +
                " | Coins: " + coins +
-               " | Score: " + score +
+               " | Tickets: " + tickets +
                " | Spins Left: " + spinsLeft +
                " | Bet: " + currentBet;
     }

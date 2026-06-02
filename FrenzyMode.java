@@ -19,7 +19,7 @@ public class FrenzyMode extends Upgrade {
     public FrenzyMode() {
         super("Frenzy Mode",
               "Triples all payout values for 60 seconds. One per round only.",
-              50);
+              3);
     }
 
     // -------------------------------------------------------
